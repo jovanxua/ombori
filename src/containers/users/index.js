@@ -2,12 +2,14 @@ import React, { Component } from 'react';
 import {
   FlatList,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import GenericContainer from '../../components/GenericContainer';
-import SeeMoreButton from '../../components/SeeMoreButton';
+import CustomButton from '../../components/CustomButton';
 import CustomCard from '../../components/CustomCard';
 import Header from '../../components/Header';
 import Separator from '../../components/Separator';
+import CustomBar from '../../components/CustomBar';
 import fetchApi from '../../services/api';
 
 import styles from './styles';
@@ -17,59 +19,100 @@ class Users extends Component {
     super(props);
     this.state = {
       page: 0,
-      data: null,
+      users: [],
       refreshing: false,
       loadMoreFailed: false,
-      loadMore: false,
+      loadingMore: false,
       hasReachedEnd: false,
     };
   }
 
   componentDidMount() {
-    this.getDataFromDB();
+    this.initComponentData();
   }
 
   onPullRefresh = () => {
-    this.setState({ refreshing: true });
+    this.setState({
+      page: 0,
+      refreshing: true,
+      loadingMore: true,
+    }, () => {
+      this.getDataFromDB();
+    });
   }
 
   getDataFromDB = async () => {
+    const { users, page } = this.state;
     const strFixedEndpoint = '/api/users?page=';
-    const nextPage = this.state.page + 1;
-    const strCurEndpoint = strFixedEndpoint.concat(nextPage);
-    await this.setState({ loadMore: true });
+    const targetPage = page + 1;
+    const strCurEndpoint = strFixedEndpoint.concat(targetPage);
     fetchApi(strCurEndpoint)
       .then((res) => {
         this.setState({
-          data: res,
+          users: targetPage === 1 ? res.data : [...users, ...res.data],
+          page: targetPage,
           loadMoreFailed: false,
-          loadMore: false,
+          loadingMore: false,
+          refreshing: false,
+          hasReachedEnd: targetPage === res.total_pages,
         });
       })
       .catch(() => {
-        this.setState({ loadMoreFailed: true });
+        this.setState({
+          loadingMore: false,
+          loadMoreFailed: true,
+          refreshing: false,
+        });
+        this.showLoadMoreFailedMsg();
       });
   }
 
-  seeMore = () => {
-    this.setState({ loadMoreFailed: false });
+  initComponentData = () => {
+    this.setState({
+      loadingMore: true,
+    }, () => {
+      this.getDataFromDB();
+    });
   }
 
-  keyExtractor = item => toString(item.id);
+  handleLoadMore = () => {
+    const {
+      loadMoreFailed,
+      loadingMore,
+      hasReachedEnd,
+      refreshing,
+    } = this.state;
 
-  renderFooter = () => {
-    let oView = null;
-    if (this.state.loadMoreFailed) {
-      oView = <SeeMoreButton onPress={this.seeMore} />;
-    } else if (this.state.hasReachedEnd) {
-      oView = null;
-    } else if (this.state.loadMore) {
-      oView = <ActivityIndicator size="small" color="#EEB843" />;
-    } else {
-      oView = null;
+    if (!loadingMore && !hasReachedEnd && !refreshing && !loadMoreFailed) {
+      this.setState({
+        loadingMore: true,
+      }, () => {
+        this.getDataFromDB();
+      });
     }
+  }
 
-    return oView;
+  seeMore = () => {
+    this.setState({
+      loadMoreFailed: false,
+      loadingMore: true,
+    }, () => {
+      this.getDataFromDB();
+    });
+  }
+
+  keyExtractor = item => JSON.stringify(item.id);
+
+  showLoadMoreFailedMsg = () => {
+    const strMsg = 'Unabled to load users. Please check your internet connection or try loading again in a minute.';
+    Alert.alert(
+      "Sorry, We're Having Some Issues",
+      strMsg,
+      [
+        { text: 'OK', onPress: () => {} },
+      ],
+      { cancelable: false },
+    );
   }
 
   renderItem = ({ item }) => (
@@ -80,19 +123,43 @@ class Users extends Component {
 
   renderSeparator = () => <Separator />
 
+  renderFooter = () => {
+    const {
+      page,
+      loadMoreFailed,
+      hasReachedEnd,
+      loadingMore,
+    } = this.state;
+
+    let oView = null;
+    if (loadMoreFailed) {
+      const strTitle = page === 0 ? 'Reload' : 'See More';
+      oView = <CustomButton onPress={this.seeMore} title={strTitle} />;
+    } else if (hasReachedEnd) {
+      oView = <CustomBar title="End of Results" />;
+    } else if (loadingMore) {
+      oView = <ActivityIndicator size="large" color="#EEB843" />;
+    } else {
+      oView = null;
+    }
+
+    return oView;
+  }
+
   render() {
-    const list = this.state.data ? this.state.data.data : [];
+    const users = [...this.state.users];
+    const { loadingMore } = this.state;
     return (
-      <GenericContainer isLoading={this.state.data == null}>
+      <GenericContainer isLoading={false}>
         <FlatList
           refreshing={this.state.refreshing}
           onRefresh={this.onPullRefresh}
           contentContainerStyle={styles.flatlistContainer}
-          extraData={this.state.data}
+          extraData={loadingMore}
           keyExtractor={this.keyExtractor}
-          data={list}
-          onEndReached={this.getDataFromDB}
-          onEndReachedThreshold={0.5}
+          data={users}
+          onEndReached={this.handleLoadMore}
+          onEndReachedThreshold={0.01}
           ListHeaderComponent={this.renderHeader}
           ListFooterComponent={this.renderFooter}
           ItemSeparatorComponent={this.renderSeparator}

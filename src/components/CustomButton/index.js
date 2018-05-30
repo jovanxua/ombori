@@ -8,9 +8,10 @@ import PropTypes from 'prop-types';
 
 import styles from './styles';
 
-class SeeMoreButton extends PureComponent {
+class CustomButton extends PureComponent {
   static propTypes = {
     onPress: PropTypes.func.isRequired,
+    title: PropTypes.string.isRequired,
   }
 
   render() {
@@ -18,7 +19,7 @@ class SeeMoreButton extends PureComponent {
       <TouchableOpacity style={styles.container} onPress={() => this.props.onPress()}>
         <View style={styles.contLabel}>
           <Text style={styles.txtLabel}>
-              See More
+            {this.props.title}
           </Text>
         </View>
       </TouchableOpacity>
@@ -26,5 +27,5 @@ class SeeMoreButton extends PureComponent {
   }
 }
 
-export default SeeMoreButton;
+export default CustomButton;
 

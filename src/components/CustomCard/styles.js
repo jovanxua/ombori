@@ -5,29 +5,20 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     backgroundColor: '#fff',
-    padding: 15,
+    padding: 20,
   },
 
   contLeft: {
-    flex: 1,
-    maxWidth: 160,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-
+    flex: 0,
   },
 
   placeholderImg: {
-    width: 80,
-    height: 80,
-    borderRadius: 100,
   },
 
   imgStyle: {
-    width: 80,
-    height: 80,
+    width: 78,
+    height: 78,
     borderRadius: 100,
-    backgroundColor: '#BDC3C7',
   },
 
   contRight: {
@@ -35,7 +26,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'flex-start',
     backgroundColor: 'transparent',
-    paddingLeft: 20,
+    paddingLeft: 25,
     paddingRight: 20,
   },
 

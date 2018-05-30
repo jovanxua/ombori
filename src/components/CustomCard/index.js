@@ -35,7 +35,7 @@ class CustomCard extends PureComponent {
         <View style={styles.contLeft}>
           <View style={styles.placeholderImg}>
             <Image
-              style={styles.placeholderImg}
+              style={styles.imgStyle}
               source={{ uri: strImgUrl }}
             />
           </View>

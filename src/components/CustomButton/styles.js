@@ -4,12 +4,8 @@ const styles = StyleSheet.create({
   container: {
     height: 35,
     backgroundColor: '#EEB843',
-    marginRight: 15,
-    marginLeft: 15,
-    marginTop: 5,
-    marginBottom: 5,
-    elevation: 3,
-    borderRadius: 7,
+    elevation: 1,
+    marginBottom: 1,
   },
 
   contLabel: {
